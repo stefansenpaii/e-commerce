@@ -1,0 +1,30 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      routes:
+        - id: users_route
+          uri: lb://USERS-SERVICE
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=2
+
+        - id: orders_route
+          uri: lb://ORDERS-SERVICE
+          predicates:
+            - Path=/api/orders/**
+          filters:
+            - StripPrefix=2
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka

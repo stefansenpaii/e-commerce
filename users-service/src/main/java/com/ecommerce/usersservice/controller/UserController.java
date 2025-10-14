@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/")
 public class UserController {
 
     @Autowired
@@ -36,9 +36,9 @@ public class UserController {
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
         return userService.findById(id)
                 .map(existingUser -> {
-                    existingUser.setFirstName(userDetails.getFirstName());
-                    existingUser.setLastName(userDetails.getLastName());
-                    existingUser.setEmail(userDetails.getEmail());
+                    existingUser.setFirstName(userDetails.getFirstName()!=null ? userDetails.getFirstName() : existingUser.getFirstName());
+                    existingUser.setLastName(userDetails.getLastName()!=null ? userDetails.getLastName() : existingUser.getLastName());
+                    existingUser.setEmail(userDetails.getEmail()!=null ? userDetails.getEmail() : existingUser.getEmail());
                     return ResponseEntity.ok(userService.save(existingUser));
                 })
                 .orElse(ResponseEntity.notFound().build());

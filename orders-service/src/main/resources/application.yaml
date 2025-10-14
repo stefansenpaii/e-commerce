@@ -1,0 +1,46 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: ORDERS-SERVICE
+  datasource:
+    url: jdbc:h2:mem:orderdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+  h2:
+    console:
+      enabled: true
+      path: /h2
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+    instances:
+      user-api:
+        waitDurationInOpenState: 5s
+        baseConfig: default
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 1s
+    instances:
+      user-api:
+        baseConfig: default
