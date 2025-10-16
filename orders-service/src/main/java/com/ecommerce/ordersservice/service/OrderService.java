@@ -68,7 +68,6 @@ public class OrderService {
         details.setUserId(order.getUserId());
         details.setProductName(order.getProductName());
         details.setQuantity(order.getQuantity());
-        details.setTotalAmount(order.getTotalAmount());
 
         details.setUserFirstName(userDTO.getFirstName());
         details.setUserLastName(userDTO.getLastName());

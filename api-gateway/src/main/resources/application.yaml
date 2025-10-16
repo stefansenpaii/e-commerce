@@ -15,14 +15,14 @@ spring:
           predicates:
             - Path=/api/users/**
           filters:
-            - StripPrefix=2
+            - StripPrefix=1
 
         - id: orders_route
           uri: lb://ORDERS-SERVICE
           predicates:
             - Path=/api/orders/**
           filters:
-            - StripPrefix=2
+            - StripPrefix=1
 
 eureka:
   client:

@@ -2,6 +2,7 @@ package com.ecommerce.usersservice.controller;
 
 import com.ecommerce.usersservice.models.User;
 import com.ecommerce.usersservice.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/users")
 public class UserController {
 
     @Autowired
@@ -28,12 +29,12 @@ public class UserController {
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
+    public User createUser(@Valid @RequestBody User user) {
         return userService.save(user);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody User userDetails) {
         return userService.findById(id)
                 .map(existingUser -> {
                     existingUser.setFirstName(userDetails.getFirstName()!=null ? userDetails.getFirstName() : existingUser.getFirstName());

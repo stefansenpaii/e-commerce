@@ -3,6 +3,7 @@ package com.ecommerce.ordersservice.controller;
 import com.ecommerce.ordersservice.dto.OrderDetailsDTO;
 import com.ecommerce.ordersservice.models.Order;
 import com.ecommerce.ordersservice.service.OrderService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("/orders")
 public class OrderController {
 
     @Autowired
@@ -29,18 +30,17 @@ public class OrderController {
     }
 
     @PostMapping
-    public Order createOrder(@RequestBody Order order) {
+    public Order createOrder(@Valid @RequestBody Order order) {
         return orderService.save(order);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order orderDetails) {
+    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @Valid @RequestBody Order orderDetails) {
         return orderService.findById(id)
                 .map(existingOrder -> {
                     existingOrder.setUserId(orderDetails.getUserId()!=null ? orderDetails.getUserId() : existingOrder.getUserId());
                     existingOrder.setQuantity(orderDetails.getQuantity()!=null ? orderDetails.getQuantity() : existingOrder.getQuantity());
                     existingOrder.setProductName(orderDetails.getProductName()!=null ? orderDetails.getProductName() : existingOrder.getProductName());
-                    existingOrder.setTotalAmount(orderDetails.getTotalAmount()!=null ? orderDetails.getTotalAmount() : existingOrder.getTotalAmount());
                     return ResponseEntity.ok(orderService.save(existingOrder));
                 })
                 .orElse(ResponseEntity.notFound().build());
