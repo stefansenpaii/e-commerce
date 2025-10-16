@@ -1,6 +1,7 @@
 package com.ecommerce.usersservice.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -27,7 +28,7 @@ public class User {
     private String lastName;
 
     @NotBlank(message = "Email je obavezan")
-    @Size(min = 2, max = 100, message = "Email mora imati 2-100 karaktera")
+    @Email(message = "Email mora biti u formatu user@example.com")
     private String email;
 
 }

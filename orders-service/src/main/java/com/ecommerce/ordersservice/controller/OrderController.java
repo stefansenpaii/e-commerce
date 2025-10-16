@@ -7,7 +7,9 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -18,8 +20,9 @@ public class OrderController {
     private OrderService orderService;
 
     @GetMapping
-    public List<Order> getAllOrders() {
-        return orderService.findAll();
+    public ResponseEntity<List<Order>> getAllOrders() {
+        List<Order> orders = orderService.findAll();
+        return ResponseEntity.ok(orders);
     }
 
     @GetMapping("/{id}")
@@ -30,12 +33,21 @@ public class OrderController {
     }
 
     @PostMapping
-    public Order createOrder(@Valid @RequestBody Order order) {
-        return orderService.save(order);
+    public ResponseEntity<Order> createOrder(@Valid @RequestBody Order order) {
+
+        Order savedOrder = orderService.save(order);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(savedOrder.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(savedOrder);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @Valid @RequestBody Order orderDetails) {
+    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order orderDetails) {
         return orderService.findById(id)
                 .map(existingOrder -> {
                     existingOrder.setUserId(orderDetails.getUserId()!=null ? orderDetails.getUserId() : existingOrder.getUserId());
@@ -57,7 +69,8 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}/details")
-    public OrderDetailsDTO getOrderDetails(@PathVariable Long orderId) {
-        return orderService.getOrderDetails(orderId);
+    public ResponseEntity<OrderDetailsDTO> getOrderDetails(@PathVariable Long orderId) {
+        return orderService.getOrderDetails(orderId).map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }

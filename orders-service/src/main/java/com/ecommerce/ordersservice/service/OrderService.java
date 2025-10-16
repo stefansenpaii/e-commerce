@@ -7,6 +7,7 @@ import com.ecommerce.ordersservice.models.Order;
 import com.ecommerce.ordersservice.repository.OrderRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
+import jakarta.ws.rs.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -51,15 +52,26 @@ public class OrderService {
         throw new RuntimeException("Kvar usluge: Validacija korisnika je nedostupna.");
     }
 
-    public OrderDetailsDTO getOrderDetails(Long orderId) {
+    public Optional<OrderDetailsDTO> getOrderDetails(Long orderId) {
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Narudžbina nije pronađena."));
+        Optional<Order> orderOptional = orderRepository.findById(orderId);
+        if (orderOptional.isEmpty()) {
+            return Optional.empty();
+        }
 
-        UserDTO userDTO = userClient.getUserById(order.getUserId());
+        Order order = orderOptional.get();
+        UserDTO userDTO = null;
 
+        try {
+            userDTO = userClient.getUserById(order.getUserId());
+        } catch (NotFoundException e) {
+            return Optional.empty();
+        } catch (Exception e) {
+            System.err.println("Greška prilikom Feign poziva ka USERS-SERVICE: " + e.getMessage());
+            return Optional.empty();
+        }
         if (userDTO == null) {
-            throw new RuntimeException("Podaci o korisniku trenutno nedostupni.");
+            return Optional.empty();
         }
 
         OrderDetailsDTO details = new OrderDetailsDTO();
@@ -73,6 +85,6 @@ public class OrderService {
         details.setUserLastName(userDTO.getLastName());
         details.setUserEmail(userDTO.getEmail());
 
-        return details;
+        return Optional.of(details);
     }
 }

@@ -6,7 +6,9 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -17,8 +19,10 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userService.findAll();
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> users = userService.findAll();
+
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{id}")
@@ -29,12 +33,20 @@ public class UserController {
     }
 
     @PostMapping
-    public User createUser(@Valid @RequestBody User user) {
-        return userService.save(user);
+    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
+        User savedUser = userService.save(user);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(savedUser.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(savedUser);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody User userDetails) {
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
         return userService.findById(id)
                 .map(existingUser -> {
                     existingUser.setFirstName(userDetails.getFirstName()!=null ? userDetails.getFirstName() : existingUser.getFirstName());

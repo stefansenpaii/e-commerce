@@ -9,7 +9,6 @@ public class OrderDetailsDTO {
     private Long userId;
     private String productName;
     private Integer quantity;
-    private Double totalAmount;
 
     private String userFirstName;
     private String userLastName;
