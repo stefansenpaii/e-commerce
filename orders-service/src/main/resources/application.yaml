@@ -30,11 +30,11 @@ resilience4j:
         slidingWindowType: COUNT_BASED
         slidingWindowSize: 5
         failureRateThreshold: 50
-        waitDurationInOpenState: 5s
+        waitDurationInOpenState: 10s
         automaticTransitionFromOpenToHalfOpenEnabled: true
     instances:
       user-api:
-        waitDurationInOpenState: 5s
+        waitDurationInOpenState: 10s
         baseConfig: default
   retry:
     configs:

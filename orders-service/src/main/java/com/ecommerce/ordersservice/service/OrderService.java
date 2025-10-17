@@ -63,6 +63,7 @@ public class OrderService {
         UserDTO userDTO = null;
 
         try {
+            System.out.println("---Feign poziv ka USERS-SERVICE---");
             userDTO = userClient.getUserById(order.getUserId());
         } catch (NotFoundException e) {
             return Optional.empty();
