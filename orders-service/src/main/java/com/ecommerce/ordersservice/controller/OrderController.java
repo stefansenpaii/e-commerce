@@ -11,6 +11,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/orders")
@@ -35,26 +36,30 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<Order> createOrder(@Valid @RequestBody Order order) {
 
-        Order savedOrder = orderService.save(order);
+        return orderService.save(order)
+                .map(savedOrder -> {
+                    URI location = ServletUriComponentsBuilder
+                            .fromCurrentRequest()
+                            .path("/{id}")
+                            .buildAndExpand(savedOrder.getId())
+                            .toUri();
 
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(savedOrder.getId())
-                .toUri();
-
-        return ResponseEntity.created(location).body(savedOrder);
+                    return ResponseEntity.created(location).body(savedOrder);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order orderDetails) {
         return orderService.findById(id)
                 .map(existingOrder -> {
-                    existingOrder.setUserId(orderDetails.getUserId()!=null ? orderDetails.getUserId() : existingOrder.getUserId());
-                    existingOrder.setQuantity(orderDetails.getQuantity()!=null ? orderDetails.getQuantity() : existingOrder.getQuantity());
-                    existingOrder.setProductName(orderDetails.getProductName()!=null ? orderDetails.getProductName() : existingOrder.getProductName());
-                    return ResponseEntity.ok(orderService.save(existingOrder));
+                    existingOrder.setUserId(orderDetails.getUserId() != null ? orderDetails.getUserId() : existingOrder.getUserId());
+                    existingOrder.setQuantity(orderDetails.getQuantity() != null ? orderDetails.getQuantity() : existingOrder.getQuantity());
+                    existingOrder.setProductName(orderDetails.getProductName() != null ? orderDetails.getProductName() : existingOrder.getProductName());
+                    return existingOrder;
                 })
+                .flatMap(orderToSave -> orderService.save(orderToSave))
+                .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 

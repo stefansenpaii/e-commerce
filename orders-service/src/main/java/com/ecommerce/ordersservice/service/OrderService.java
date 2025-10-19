@@ -5,6 +5,7 @@ import com.ecommerce.ordersservice.dto.UserDTO;
 import com.ecommerce.ordersservice.feign.UserClient;
 import com.ecommerce.ordersservice.models.Order;
 import com.ecommerce.ordersservice.repository.OrderRepository;
+import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.ws.rs.NotFoundException;
@@ -26,13 +27,29 @@ public class OrderService {
 
     @CircuitBreaker(name = "user-api", fallbackMethod = "saveFallback")
     @Retry(name = "user-api")
-    public Order save(Order order) {
+    public Optional<Order> save(Order order) {
+        UserDTO userDTO;
         try {
-            userClient.getUserById(order.getUserId());
-        } catch (Exception e) {
-            throw new RuntimeException("Korisnik sa ID " + order.getUserId() + " ne postoji.", e);
+            System.out.println("---Feign poziv ka USERS-SERVICE---");
+            userDTO = userClient.getUserById(order.getUserId());
+            if (userDTO == null) {
+                System.err.println("Korisnik sa ID " + order.getUserId() + " nije pronađen.");
+                return Optional.empty();
+            }
+        } catch (FeignException.NotFound e) {
+            System.err.println("Korisnik sa ID " + order.getUserId() + " nije pronađen.");
+            return Optional.empty();
         }
-        return orderRepository.save(order);
+        catch (Exception e) {
+            throw new RuntimeException("Validacija korisnika je nedostupna.", e);
+        }
+
+        if (userDTO == null) {
+            System.err.println("Korisnik sa ID " + order.getUserId() + " nije pronađen.");
+            return Optional.empty();
+        }
+
+        return Optional.of(orderRepository.save(order));
     }
 
     public List<Order> findAll() {
@@ -47,11 +64,20 @@ public class OrderService {
         orderRepository.deleteById(id);
     }
 
-    public Order saveFallback(Order order, Throwable t) {
-        System.err.println("--- Fallback je aktiviran zbog: " + t.getMessage() + " ---");
-        throw new RuntimeException("Kvar usluge: Validacija korisnika je nedostupna.");
+    public Optional<Order> saveFallback(Order order, Throwable t) {
+        System.err.println("--- Fallback je aktiviran zbog: ---");
+        System.err.println(t.getClass().getSimpleName() + ": " + t.getMessage());
+        throw new RuntimeException("Greška: Validacija korisnika je nedostupna.");
     }
 
+    public Optional<OrderDetailsDTO> getOrderDetailsFallback(Long orderId, Throwable t) {
+        System.err.println("--- Fallback je aktiviran zbog: ---");
+        System.err.println(t.getClass().getSimpleName() + ": " + t.getMessage());
+        throw new RuntimeException("Greška: Validacija korisnika je nedostupna.");
+    }
+
+    @CircuitBreaker(name = "user-api", fallbackMethod = "getOrderDetailsFallback")
+    @Retry(name = "user-api")
     public Optional<OrderDetailsDTO> getOrderDetails(Long orderId) {
 
         Optional<Order> orderOptional = orderRepository.findById(orderId);
@@ -65,11 +91,11 @@ public class OrderService {
         try {
             System.out.println("---Feign poziv ka USERS-SERVICE---");
             userDTO = userClient.getUserById(order.getUserId());
-        } catch (NotFoundException e) {
+        } catch (FeignException.NotFound e) {
+            System.err.println("Korisnik sa ID " + order.getUserId() + " nije pronađen.");
             return Optional.empty();
         } catch (Exception e) {
-            System.err.println("Greška prilikom Feign poziva ka USERS-SERVICE: " + e.getMessage());
-            return Optional.empty();
+            throw new RuntimeException("Validacija korisnika je nedostupna.", e);
         }
         if (userDTO == null) {
             return Optional.empty();

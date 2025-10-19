@@ -47,13 +47,13 @@ Sistem je podeljen na sledeće module:
 ### 2.3. Redosled Pokretanja Servisa 
 
 
- **1.**  `discovery-service`  `8761`  `DiscoveryServiceApplication`  **MORA biti prvi.**
+ **1.**  `discovery-service`  `8761`  `DiscoveryServiceApplication`  **mora biti prvi.**
 
  **2.**  `users-service`  `8081`  `UserServiceApplication`  Registruje se na 8761.
 
  **3.**  `orders-service`  `8082`  `OrdersServiceApplication`  Registruje se na 8761.
 
- **4.**  **`api-gateway`**  `8080`  `ApiGatewayApplication`   Čita rute sa 8761.
+ **4.**  **`api-gateway`**  `8080`  `ApiGatewayApplication`   Čita rute sa 8761 i registruje se.
 
 **Provera Statusa:** Status registracije možete proveriti na Eureka Dashboardu: [http://localhost:8761](http://localhost:8761)
 

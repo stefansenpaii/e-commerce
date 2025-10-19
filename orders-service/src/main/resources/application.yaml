@@ -32,6 +32,8 @@ resilience4j:
         failureRateThreshold: 50
         waitDurationInOpenState: 10s
         automaticTransitionFromOpenToHalfOpenEnabled: true
+        permittedNumberOfCallsInHalfOpenState: 1
+        ignoreExceptions: feign.FeignException.NotFound
     instances:
       user-api:
         waitDurationInOpenState: 10s
@@ -41,6 +43,16 @@ resilience4j:
       default:
         maxAttempts: 3
         waitDuration: 1s
+        ignoreExceptions: feign.FeignException.NotFound
     instances:
       user-api:
         baseConfig: default
+
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: health, circuitbreakers, prometheus
